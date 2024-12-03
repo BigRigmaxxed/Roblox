@@ -1,0 +1,85 @@
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local highlightEnabled = true  -- Whether highlighting is enabled
+
+-- Function to highlight players
+local function highlightPlayer(player)
+    -- Check if the player has a character and it's not the local player (so they can see others)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local character = player.Character
+        local humanoidRootPart = character.HumanoidRootPart
+        
+        -- Create the highlight effect
+        local highlight = character:FindFirstChild("Highlight")
+        
+        if not highlight then
+            highlight = Instance.new("Highlight")
+            highlight.Name = "Highlight"
+            highlight.Parent = character
+            highlight.FillColor = Color3.fromRGB(0, 255, 0)  -- Green fill color
+            highlight.FillTransparency = 0.3  -- Transparency of the highlight
+            highlight.OutlineColor = Color3.fromRGB(0, 255, 0)  -- Outline color
+            highlight.OutlineTransparency = 0.3  -- Transparency of the outline
+        end
+    end
+end
+
+-- Function to remove the highlight from players
+local function removeHighlight(player)
+    if player.Character then
+        local highlight = player.Character:FindFirstChild("Highlight")
+        if highlight then
+            highlight:Destroy()
+        end
+    end
+end
+
+-- Highlight each player in the game
+local function highlightAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer then  -- Don't highlight the local player
+            highlightPlayer(player)
+        end
+    end
+end
+
+-- Remove highlights from all players
+local function removeAllHighlights()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer then  -- Don't remove for the local player
+            removeHighlight(player)
+        end
+    end
+end
+
+-- Toggle highlight on/off when the player presses a key (you can change this key)
+local UIS = game:GetService("UserInputService")
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    -- Toggle highlights when 'H' is pressed
+    if input.KeyCode == Enum.KeyCode.H then
+        if highlightEnabled then
+            removeAllHighlights()  -- Remove existing highlights
+        else
+            highlightAllPlayers()  -- Apply highlights
+        end
+        highlightEnabled = not highlightEnabled  -- Toggle the highlight state
+    end
+end)
+
+-- Ensure all players are highlighted at the start of the game
+highlightAllPlayers()
+
+-- Listen to player joining and leaving the game to add/remove highlights
+Players.PlayerAdded:Connect(function(player)
+    if player ~= localPlayer then
+        highlightPlayer(player)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if player ~= localPlayer then
+        removeHighlight(player)
+    end
+end)
